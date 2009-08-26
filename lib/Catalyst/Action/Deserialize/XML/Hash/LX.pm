@@ -8,7 +8,15 @@ package Catalyst::Action::Deserialize::XML::Hash::LX;
 
 =head1 NAME
 
-Catalyst::Action::Deserialize::XML::Hash::LX
+Catalyst::Action::Deserialize::XML::Hash::LX - XML::Hash::LX deserializer for Catalyst
+
+=head1 VERSION
+
+Version 0.03
+
+=cut
+
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 

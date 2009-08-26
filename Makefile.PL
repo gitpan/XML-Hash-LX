@@ -9,6 +9,9 @@ build_requires 'Test::More';
 build_requires 'lib::abs', '0.90';
 
 requires 'XML::LibXML';
+features 'Catalyst' => [
+	'Catalyst::Action' => '0',
+];
 
 auto_install;
 
