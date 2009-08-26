@@ -28,11 +28,11 @@ XML::Hash::LX - Convert hash to xml and xml to hash using LibXML
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -266,24 +266,28 @@ sub _x2h {
 				}
 				my $chld = _x2h($_);
 				if ($X2H{order}) {
-					push @{ $res }, { $nn => $chld };
+					if ($nn eq $X2H{text}) {
+						push @{ $res }, $chld if length $chld;
+					} else {
+						push @{ $res }, { $nn => $chld };
+					}
 				} else {
 					if (( $X2A or $X2A{$nn} ) and !$res->{$nn}) { $res->{$nn} = [] }
 					if (exists $res->{$nn} ) {
 						#warn "Append to $res->{$nn}: $nn $chld";
 						$res->{$nn} = [ $res->{$nn} ] unless ref $res->{$nn} eq 'ARRAY';
-						push @{$res->{$nn}}, $chld;
+						push @{$res->{$nn}}, $chld if defined $chld;
 					} else {
-						$res->{$nn} = $chld;
+						if ($nn eq $X2H{text}) {
+							$res->{$nn} = $chld if length $chld;
+						} else {
+							$res->{$nn} = $chld;
+						}
 					}
 				}
 			}
 			if($X2H{order}) {
 				#warn "Ordered mode, have res with ".(0+@$res)." children = @$res";
-				for (@$res) {
-					$_ = $_->{ $X2H{text} }, next
-						if keys %$_ == 1 and exists $_->{ $X2H{text} };
-				}
 				return $res->[0] if @$res == 1;
 			} else {
 				if (defined $X2H{join} and exists $res->{ $X2H{text} } and ref $res->{ $X2H{text} }) {
@@ -394,13 +398,15 @@ our $AL = length $H2X{attr};
 
 our $hd = '/';
 sub _h2x {
+	@_ or return;
 	my ($data,$parent) = @_;
 	#warn "> $d";
+	return unless defined $data;
 	if ( !ref $data ) {
 		if ($H2X{trim}) {
 			$data =~ s/^\s+//s;
 			$data =~ s/\s+$//s;
-			return unless length($data);
+			#return unless length($data);
 		}
 		return XML::LibXML::Text->new($data)
 	};
