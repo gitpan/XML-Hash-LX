@@ -2,7 +2,7 @@ NAME
     XML::Hash::LX - Convert hash to xml and xml to hash using LibXML
 
 VERSION
-    Version 0.03
+    Version 0.04
 
 SYNOPSIS
         use XML::Hash::LX;

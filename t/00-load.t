@@ -6,7 +6,9 @@ use lib::abs '../lib';
 BEGIN {
 	my $catalyst = 0;
 	eval {require Catalyst::Action; 1} and $catalyst = 1;
-	plan tests => 4;
+	my $w = 0;
+	eval {require Test::NoWarnings;Test::NoWarnings->import; 1} and $w = 1;
+	plan tests => 4+$w;
 	use_ok( 'XML::Hash::LX' );
 	use_ok( 'XML::Hash::LX', 'xml2hash', 'hash2xml' );
 	SKIP: {

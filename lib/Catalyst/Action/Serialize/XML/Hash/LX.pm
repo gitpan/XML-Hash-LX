@@ -10,14 +10,6 @@ package Catalyst::Action::Serialize::XML::Hash::LX;
 
 Catalyst::Action::Serialize::XML::Hash::LX - XML::Hash::LX serializer for Catalyst
 
-=head1 VERSION
-
-Version 0.03
-
-=cut
-
-our $VERSION = '0.03';
-
 =head1 SYNOPSIS
 
     package Foo::Controller::Bar;
@@ -43,6 +35,8 @@ use warnings;
 
 use base 'Catalyst::Action';
 use XML::Hash::LX 'hash2xml';
+
+our $VERSION = $XML::Hash::LX::VERSION;
 
 sub execute {
 	my $self = shift;

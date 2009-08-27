@@ -1,5 +1,6 @@
 package XML::Hash::LX;
 
+use 5.006002;
 use strict;
 use warnings;
 use XML::LibXML ();
@@ -28,11 +29,11 @@ XML::Hash::LX - Convert hash to xml and xml to hash using LibXML
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 SYNOPSIS
 

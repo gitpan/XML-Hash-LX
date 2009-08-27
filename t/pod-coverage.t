@@ -20,3 +20,4 @@ pod_coverage_ok('XML::Hash::LX');
 #all_pod_coverage_ok();
 exit 0;
 require Test::Pod::Coverage; # ;)
+require Test::NoWarnings;

@@ -2,6 +2,9 @@ Revision history for XML-Hash-LX
 
 TODO: make hash2xml faster
 
+0.04    2009-08-27
+        Fight for kwalitee. No major changes in code
+
 0.03    2009-08-26
         Fix deps on Catalyst::Action
 

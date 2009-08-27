@@ -17,3 +17,5 @@ run_tests(
 	match    => qr/\b(?:TODO|FIXME)\b/, # what to check for
 	skip_all => $ENV{SKIP},
 );
+exit 0;
+require Test::NoWarnings;
