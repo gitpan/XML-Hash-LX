@@ -29,11 +29,11 @@ XML::Hash::LX - Convert hash to xml and xml to hash using LibXML
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 
@@ -257,13 +257,19 @@ sub _x2h {
 				}
 			}
 			for ($doc->childNodes) {
-				my $nn = $_->nodeName;
-				if ($nn eq '#text' and $X2H{text} ne '#text') { $nn = $X2H{text} }
-				if ($nn eq '#cdata-section') {
+				my $ref = ref $_;
+				my $nn;
+				if ($ref eq 'XML::LibXML::Text') {
+					$nn = $X2H{text}
+				}
+				elsif ($ref eq 'XML::LibXML::CDATASection') {
 					$nn = defined $X2H{cdata} ? $X2H{cdata} : $X2H{text};
 				}
-				if ($nn eq '#comment') {
+				elsif ($ref eq 'XML::LibXML::Comment') {
 					$nn = defined $X2H{comm} ? $X2H{comm} : next;
+				}
+				else {
+					$nn = $_->nodeName;
 				}
 				my $chld = _x2h($_);
 				if ($X2H{order}) {

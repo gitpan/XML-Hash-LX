@@ -17,8 +17,6 @@ inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
-lib/Catalyst/Action/Deserialize/XML/Hash/LX.pm
-lib/Catalyst/Action/Serialize/XML/Hash/LX.pm
 lib/XML/Hash/LX.pm
 LICENSE
 makeall.sh

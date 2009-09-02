@@ -6,7 +6,7 @@ BEGIN {
 	my $add = 0;
 	eval {require Test::NoWarnings;Test::NoWarnings->import; ++$add; 1 }
 		or diag "Test::NoWarnings missed, skipping no warnings test";
-	plan tests => 25 + $add;
+	plan tests => 29 + $add;
 }
 
 use lib::abs '../lib';
@@ -25,8 +25,9 @@ our (%X2H,%X2A,%H2X);
 
 our $xml1 = q{
 	<root at="key">
+		<!-- test -->
 		<nest>
-			first
+			<![CDATA[first]]>
 			<v>a</v>
 			mid
 			<v at="a">b</v>
@@ -58,6 +59,13 @@ our $data;
 	is_deeply
 		$data = xml2hash($xml1),
 		{root => {'-at' => 'key',nest => {'#text' => 'firstmidlast',vv => '',v => ['a',{'-at' => 'a','#text' => 'b'}]}}},
+		'default (1)'
+	or diag dd($data),"\n";
+}
+{
+	is_deeply
+		$data = xml2hash($xml1, cdata => '#cdata'),
+		{root => {'-at' => 'key',nest => {'#cdata' => 'first','#text' => 'midlast',vv => '',v => ['a',{'-at' => 'a','#text' => 'b'}]}}},
 		'default (1)'
 	or diag dd($data),"\n";
 }
@@ -204,6 +212,28 @@ our $data;
 		'X2H.join = " " (1)'
 	or diag dd($data),"\n";
 }
+{
+	is_deeply
+		$data = xml2hash(q{<root><!--test--></root>}, comm => '#comment'),
+		{root => {'#comment' => 'test'}},
+		'comment node'
+	or diag dd($data),"\n";
+}
+{
+	is_deeply
+		$data = xml2hash(q{<root x="1">test</root>}, text => '#textnode'),
+		{root => { -x => 1, '#textnode' => 'test' }},
+		'text node'
+	or diag dd($data),"\n";
+}
+{
+	is_deeply
+		$data = xml2hash(q{<root x="1"><![CDATA[test]]></root>}, cdata => '#cdata'),
+		{root => { -x => 1, '#cdata' => 'test' }},
+		'cdata node'
+	or diag dd($data),"\n";
+}
+
 
 # Composing
 # Due to unpredictable order of hash keys
