@@ -27,13 +27,9 @@ sub import {
 
 XML::Hash::LX - Convert hash to xml and xml to hash using LibXML
 
-=head1 VERSION
-
-Version 0.06
-
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.0602';
 
 =head1 SYNOPSIS
 
@@ -339,6 +335,10 @@ Options respecting convertations from hash to xml
 
 =over 4
 
+=item encoding [ = 'utf-8' ]
+
+XML output encoding
+
 =item attr [ = '-' ]
 
 Attribute prefix
@@ -427,32 +427,45 @@ sub _h2x {
 			#warn "$_ $data->{$_}";
 			#next if !defined $data->{$_} or ( !ref $data->{$_} and !length $data->{$_} );
 			
-			if ( !defined $data->{$_} or ( !ref $data->{$_} and !length $data->{$_} ) ) {
-				push @rv,XML::LibXML::Element->new($_);
-			}
-			elsif ($_ eq $H2X{text}) {
-				push @rv, map {
-					$H2X{trim} and s/(?:^\s+|\s+$)//sg;
-					$H2X{trim} && !length($_) ? () :
-					XML::LibXML::Text->new( $_ )
-				} ref $data->{$_} ? @{ $data->{$_} } : $data->{$_};
+			# What may be empty ?
+			# - attribute
+			# - node
+			# - comment
+			# Skip empty: text, cdata
+			
+			my $cdata_or_text;
+			
+			if ($_ eq $H2X{text}) {
+				$cdata_or_text = 'XML::LibXML::Text';
 			}
 			elsif (defined $H2X{cdata} and $_ eq $H2X{cdata}) {
+				$cdata_or_text = 'XML::LibXML::CDATASection';
+			}
+			
+			if (0) {}
+			
+			elsif($cdata_or_text) {
 				push @rv, map {
-					$H2X{trim} and s/(?:^\s+|\s+$)//sg;
-					$H2X{trim} && !length($_) ? () :
-					XML::LibXML::CDATASection->new($_)
+					defined($_) ? do {
+						$H2X{trim} and s/(?:^\s+|\s+$)//sg;
+						$H2X{trim} && !length($_) ? () :
+						$cdata_or_text->new( $_ )
+					} : (),
 				} ref $data->{$_} ? @{ $data->{$_} } : $data->{$_};
+				
 			}
 			elsif (defined $H2X{comm} and $_ eq $H2X{comm}) {
-				push @rv, map XML::LibXML::Comment->new($_), ref $data->{$_} ? @{ $data->{$_} } : $data->{$_};
+				push @rv, map XML::LibXML::Comment->new(defined $_ ? $_ : ''), ref $data->{$_} ? @{ $data->{$_} } : $data->{$_};
 			}
-			elsif (substr($_,0,$AL) eq $H2X{attr} and !ref $data->{$_}) {
+			elsif (substr($_,0,$AL) eq $H2X{attr} ) {
 				if ($parent) {
-					$parent->setAttribute( substr($_,1),$data->{$_} );
+					$parent->setAttribute( substr($_,1),defined $data->{$_} ? $data->{$_} : '' );
 				} else {
 					warn "attribute $_ without parent" 
 				}
+			}
+			elsif ( !defined $data->{$_} or ( !ref $data->{$_} and !length $data->{$_} ) ) {
+				push @rv,XML::LibXML::Element->new($_);
 			}
 			else {
 				local $hd = $hd.'/'.$_;
@@ -470,22 +483,34 @@ sub _h2x {
 	elsif (ref $data eq 'REF') { # LibXML Node
 		if (ref $$data and eval{ $$data->isa('XML::LibXML::Node') }) {
 			return $$data->cloneNode(1);
-		} else {
-			_croak ("Bad reference $$data on $hd");
+		}
+		elsif ( ref $$data and do { no strict 'refs'; exists ${ ref($$data).'::' }{'(""'} } ) {
+			return XML::LibXML::Text->new( "$$data" );
+		}
+		else {
+			_croak ("Bad reference ".ref( $$data ).": <$$data> on $hd");
 		}
 	}
+	elsif ( do { no strict 'refs'; exists ${ ref($data).'::' }{'(""'} } ) { # have string overload
+		return XML::LibXML::Text->new( "$data" );
+	}
+	elsif (ref $data and eval{ $data->isa('XML::LibXML::Node') }) {
+		return $data->cloneNode(1);
+	}
 	else {
-		_croak "Bad reference $data on $hd";
+		_croak "Bad reference ".ref( $data ).": <$data> on $hd";
 	}
 	#warn "@rv";
 	return wantarray ? @rv : $rv[0];
 }
 
 sub hash2xml($;%) {
+	#warn "hash2xml(@_) from @{[ (caller)[1,2] ]}";
 	my $hash = shift;
 	my %opts = @_;
 	my $str = delete $opts{doc} ? 0 : 1;
-	my $doc = XML::LibXML::Document->new('1.0','utf-8');
+	my $encoding = delete $opts{encoding} || delete $opts{enc} || 'utf-8';
+	my $doc = XML::LibXML::Document->new('1.0', $encoding);
 	local @H2X{keys %opts} = values %opts if @_;
 	local $AL = length $H2X{attr};
 	#use Data::Dumper;
